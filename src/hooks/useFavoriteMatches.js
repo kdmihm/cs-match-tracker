@@ -4,6 +4,7 @@ import { db } from "../firebase";
 import { toDate } from "../utils/formatDate";
 import { isTopRankedMatch } from "../utils/rankedTeams";
 import { useFavorites } from "./useFavorites";
+import { useTopRankedTeamIds } from "./useTopRankedTeamIds";
 
 function chunk(values, size) {
   const chunks = [];
@@ -27,6 +28,7 @@ function sortFavoriteMatches(a, b) {
 
 export function useFavoriteMatches() {
   const { favoriteTeamIds, loading: favoritesLoading } = useFavorites();
+  const { topRankedTeamIds, loading: topTeamsLoading, error: topTeamsError } = useTopRankedTeamIds();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -51,7 +53,11 @@ export function useFavoriteMatches() {
           snapshot.docs.forEach((docSnapshot) => {
             matchMap.set(docSnapshot.id, { id: docSnapshot.id, ...docSnapshot.data() });
           });
-          setMatches(Array.from(matchMap.values()).filter(isTopRankedMatch).sort(sortFavoriteMatches));
+          setMatches(
+            Array.from(matchMap.values())
+              .filter((match) => isTopRankedMatch(match, topRankedTeamIds))
+              .sort(sortFavoriteMatches),
+          );
           setLoading(false);
         },
         (snapshotError) => {
@@ -64,7 +70,11 @@ export function useFavoriteMatches() {
     return () => {
       unsubscribes.forEach((unsubscribe) => unsubscribe());
     };
-  }, [teamIdChunks]);
+  }, [teamIdChunks, topRankedTeamIds]);
 
-  return { matches, loading: loading || favoritesLoading, error };
+  return {
+    matches,
+    loading: loading || favoritesLoading || topTeamsLoading,
+    error: error || topTeamsError,
+  };
 }

@@ -37,22 +37,43 @@ function chunk(values, size) {
   return chunks;
 }
 
+async function getTopRankedTeamIds() {
+  const snapshot = await getDocs(query(collection(db, "teams"), where("isTop50Team", "==", true)));
+  return new Set(snapshot.docs.map((docSnapshot) => docSnapshot.id));
+}
+
 export async function getLiveMatches(max = 20) {
+  const topRankedTeamIds = await getTopRankedTeamIds();
   const snapshot = await getDocs(query(collection(db, "matches"), where("status", "==", "live")));
-  return snapshot.docs.map(serializeDoc).filter(isTopRankedMatch).sort(sortByStartTimeAsc).slice(0, max);
+  return snapshot.docs
+    .map(serializeDoc)
+    .filter((match) => isTopRankedMatch(match, topRankedTeamIds))
+    .sort(sortByStartTimeAsc)
+    .slice(0, max);
 }
 
 export async function getUpcomingMatches(max = 20) {
+  const topRankedTeamIds = await getTopRankedTeamIds();
   const snapshot = await getDocs(query(collection(db, "matches"), where("status", "==", "upcoming")));
-  return snapshot.docs.map(serializeDoc).filter(isTopRankedMatch).sort(sortByStartTimeAsc).slice(0, max);
+  return snapshot.docs
+    .map(serializeDoc)
+    .filter((match) => isTopRankedMatch(match, topRankedTeamIds))
+    .sort(sortByStartTimeAsc)
+    .slice(0, max);
 }
 
 export async function getRecentResults(max = 20) {
+  const topRankedTeamIds = await getTopRankedTeamIds();
   const snapshot = await getDocs(query(collection(db, "matches"), where("status", "==", "finished")));
-  return snapshot.docs.map(serializeDoc).filter(isTopRankedMatch).sort(sortByUpdatedDesc).slice(0, max);
+  return snapshot.docs
+    .map(serializeDoc)
+    .filter((match) => isTopRankedMatch(match, topRankedTeamIds))
+    .sort(sortByUpdatedDesc)
+    .slice(0, max);
 }
 
 export async function getMatches(status) {
+  const topRankedTeamIds = await getTopRankedTeamIds();
   const constraints = [];
 
   if (status && status !== "all") {
@@ -60,7 +81,7 @@ export async function getMatches(status) {
   }
 
   const snapshot = await getDocs(query(collection(db, "matches"), ...constraints));
-  const matches = snapshot.docs.map(serializeDoc).filter(isTopRankedMatch);
+  const matches = snapshot.docs.map(serializeDoc).filter((match) => isTopRankedMatch(match, topRankedTeamIds));
 
   if (status === "finished") {
     return matches.sort(sortByUpdatedDesc);
@@ -80,8 +101,12 @@ export async function getTeams() {
 }
 
 export async function getMatchesByTeam(teamId) {
+  const topRankedTeamIds = await getTopRankedTeamIds();
   const snapshot = await getDocs(query(collection(db, "matches"), where("teamIds", "array-contains", teamId)));
-  return snapshot.docs.map(serializeDoc).filter(isTopRankedMatch).sort((a, b) => sortByStartTimeAsc(b, a));
+  return snapshot.docs
+    .map(serializeDoc)
+    .filter((match) => isTopRankedMatch(match, topRankedTeamIds))
+    .sort((a, b) => sortByStartTimeAsc(b, a));
 }
 
 export async function getFavoriteMatches(favoriteTeamIds = []) {

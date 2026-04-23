@@ -49,12 +49,23 @@ function normalizeScore(apiMatch, status) {
 function normalizeMaps(apiMatch) {
   const games = apiMatch.games || apiMatch.maps || [];
 
-  return games.map((game, index) => ({
-    name: game.map?.name || game.name || `Map ${index + 1}`,
-    team1Score: Number(game.results?.[0]?.score ?? game.team1Score ?? 0),
-    team2Score: Number(game.results?.[1]?.score ?? game.team2Score ?? 0),
-    status: normalizeStatus(game.status || game.winner_type || "upcoming"),
-  }));
+  return games.map((game, index) => {
+    const rawTeam1Score = game.results?.[0]?.score ?? game.team1_score ?? game.team1Score ?? null;
+    const rawTeam2Score = game.results?.[1]?.score ?? game.team2_score ?? game.team2Score ?? null;
+
+    return {
+      name: game.map?.name || game.name || `Map ${index + 1}`,
+      position: Number(game.position ?? index + 1),
+      team1Score: rawTeam1Score === null ? null : Number(rawTeam1Score),
+      team2Score: rawTeam2Score === null ? null : Number(rawTeam2Score),
+      hasScore: rawTeam1Score !== null && rawTeam2Score !== null,
+      status: normalizeStatus(game.status || game.winner_type || "upcoming"),
+      winnerId: game.winner?.id ? `team_${game.winner.id}` : game.winner_id ? `team_${game.winner_id}` : null,
+      complete: Boolean(game.complete),
+      finished: Boolean(game.finished),
+      forfeit: Boolean(game.forfeit),
+    };
+  });
 }
 
 export function normalizeMatch(apiMatch) {

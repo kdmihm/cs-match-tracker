@@ -1,10 +1,41 @@
 import { Badge, Table } from "react-bootstrap";
 
+function getCurrentLiveMap(match) {
+  if (match?.status !== "live") return null;
+
+  return (
+    match?.maps?.find((map) => map.status === "live") ||
+    match?.maps?.find((map) => map.status !== "finished") ||
+    null
+  );
+}
+
+function formatMapScore(map) {
+  if (!map?.hasScore) {
+    return "\u2014";
+  }
+
+  return map.team1Score ?? 0;
+}
+
+function formatMapScoreRight(map) {
+  if (!map?.hasScore) {
+    return "\u2014";
+  }
+
+  return map.team2Score ?? 0;
+}
+
 export default function Scoreboard({ match, showMaps = false }) {
   const score = match?.score || { team1: 0, team2: 0 };
   const isPending = match?.status === "upcoming";
   const team1Won = match?.status === "finished" && match?.winnerId && match.winnerId === match?.team1?.id;
   const team2Won = match?.status === "finished" && match?.winnerId && match.winnerId === match?.team2?.id;
+  const currentLiveMap = getCurrentLiveMap(match);
+  const hasLiveRoundScore =
+    currentLiveMap &&
+    (Number.isFinite(currentLiveMap.team1Score) || Number.isFinite(currentLiveMap.team2Score)) &&
+    ((currentLiveMap.team1Score ?? 0) > 0 || (currentLiveMap.team2Score ?? 0) > 0);
 
   return (
     <div className="scoreboard">
@@ -20,6 +51,23 @@ export default function Scoreboard({ match, showMaps = false }) {
         </div>
       </div>
 
+      {currentLiveMap ? (
+        <div className="live-map-strip">
+          <span className="live-map-label">{currentLiveMap.name || "Current map"}</span>
+          {hasLiveRoundScore ? (
+            <div className="live-map-score">
+              <span>{match?.team1?.name || "Team 1"}</span>
+              <strong>
+                {currentLiveMap.team1Score ?? 0} - {currentLiveMap.team2Score ?? 0}
+              </strong>
+              <span>{match?.team2?.name || "Team 2"}</span>
+            </div>
+          ) : (
+            <span className="live-map-status">Current map in progress</span>
+          )}
+        </div>
+      ) : null}
+
       {showMaps && match?.maps?.length > 0 ? (
         <Table responsive borderless size="sm" className="map-table mt-3 mb-0">
           <thead>
@@ -34,8 +82,8 @@ export default function Scoreboard({ match, showMaps = false }) {
             {match.maps.map((map, index) => (
               <tr key={`${map.name}-${index}`}>
                 <td>{map.name}</td>
-                <td className="text-center">{map.team1Score ?? 0}</td>
-                <td className="text-center">{map.team2Score ?? 0}</td>
+                <td className="text-center">{formatMapScore(map)}</td>
+                <td className="text-center">{formatMapScoreRight(map)}</td>
                 <td className="text-end text-capitalize">{map.status}</td>
               </tr>
             ))}

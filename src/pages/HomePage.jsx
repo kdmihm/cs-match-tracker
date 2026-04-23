@@ -37,6 +37,10 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="jason-banner" aria-label="Jason greeting">
+        <span className="jason-banner-copy">Hi Jason</span>
+      </section>
+
       <Row className="g-4">
         <Col lg={7}>
           <Section title="Live Matches" kicker="Now">

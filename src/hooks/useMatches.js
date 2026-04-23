@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { db } from "../firebase";
 import { toDate } from "../utils/formatDate";
 import { isTopRankedMatch } from "../utils/rankedTeams";
+import { useTopRankedTeamIds } from "./useTopRankedTeamIds";
 
 function serializeDoc(snapshot) {
   return {
@@ -26,6 +27,7 @@ export function useMatches(status = "all", maxResults) {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { topRankedTeamIds, loading: topTeamsLoading, error: topTeamsError } = useTopRankedTeamIds();
 
   const queryConstraints = useMemo(() => {
     const constraints = [];
@@ -48,7 +50,7 @@ export function useMatches(status = "all", maxResults) {
     return onSnapshot(
       query(collection(db, "matches"), ...queryConstraints),
       (snapshot) => {
-        const rankedMatches = snapshot.docs.map(serializeDoc).filter(isTopRankedMatch);
+        const rankedMatches = snapshot.docs.map(serializeDoc).filter((match) => isTopRankedMatch(match, topRankedTeamIds));
         const sortedMatches = sortMatches(rankedMatches, status);
         setMatches(maxResults ? sortedMatches.slice(0, maxResults) : sortedMatches);
         setLoading(false);
@@ -58,7 +60,11 @@ export function useMatches(status = "all", maxResults) {
         setLoading(false);
       },
     );
-  }, [maxResults, queryConstraints, status]);
+  }, [maxResults, queryConstraints, status, topRankedTeamIds]);
 
-  return { matches, loading, error };
+  return {
+    matches,
+    loading: loading || topTeamsLoading,
+    error: error || topTeamsError,
+  };
 }

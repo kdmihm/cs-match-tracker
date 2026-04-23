@@ -1,4 +1,4 @@
-export const TOP_RANKED_TEAMS = [
+const TOP_RANKED_TEAMS = [
   { rank: 1, name: "Vitality", points: 1000, aliases: ["Team Vitality"] },
   { rank: 2, name: "Natus Vincere", points: 508, aliases: ["NAVI", "NaVi", "Natus Vincere"] },
   { rank: 3, name: "FURIA", points: 472, aliases: ["FURIA Esports"] },
@@ -51,7 +51,7 @@ export const TOP_RANKED_TEAMS = [
   { rank: 50, name: "Betclic", points: 30, aliases: ["Betclic Apogee"] },
 ];
 
-export function normalizeTeamName(name) {
+function normalizeTeamName(name) {
   return String(name || "")
     .toLowerCase()
     .replace(/^team\s+/, "")
@@ -59,20 +59,7 @@ export function normalizeTeamName(name) {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-export function getRankedTeamNames() {
-  return new Set(
-    TOP_RANKED_TEAMS.flatMap((team) => [team.name, ...team.aliases]).map((teamName) => normalizeTeamName(teamName)),
-  );
-}
-
-export function isTopRankedTeamName(teamName) {
-  return getRankedTeamNames().has(normalizeTeamName(teamName));
-}
-
-export function isTopRankedMatch(match, topRankedTeamIds) {
-  if (topRankedTeamIds?.size) {
-    return (match?.teamIds || []).some((teamId) => topRankedTeamIds.has(teamId));
-  }
-
-  return isTopRankedTeamName(match?.team1?.name) || isTopRankedTeamName(match?.team2?.name);
-}
+module.exports = {
+  TOP_RANKED_TEAMS,
+  normalizeTeamName,
+};

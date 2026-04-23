@@ -1,5 +1,6 @@
 import { Card } from "react-bootstrap";
 import FavoriteButton from "./FavoriteButton";
+import { getCanonicalTeamId } from "../utils/teamIdentity";
 
 export default function TeamCard({ team }) {
   return (
@@ -13,7 +14,7 @@ export default function TeamCard({ team }) {
           </h3>
           <p>{team.isRankedTeam ? `${team.hltvPoints} HLTV points` : team.region || "Unknown region"}</p>
         </div>
-        <FavoriteButton teamId={team.id} />
+        <FavoriteButton teamId={getCanonicalTeamId(team)} />
       </Card.Body>
     </Card>
   );
