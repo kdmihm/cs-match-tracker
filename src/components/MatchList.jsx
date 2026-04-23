@@ -2,7 +2,7 @@ import { Alert } from "react-bootstrap";
 import LoadingSpinner from "./LoadingSpinner";
 import MatchCard from "./MatchCard";
 
-export default function MatchList({ matches, loading, error, emptyMessage = "No matches found." }) {
+export default function MatchList({ matches, loading, error, emptyMessage = "No matches found.", scrollable = false }) {
   if (loading) return <LoadingSpinner label="Loading matches" />;
 
   if (error) {
@@ -18,7 +18,7 @@ export default function MatchList({ matches, loading, error, emptyMessage = "No 
   }
 
   return (
-    <div className="match-list">
+    <div className={scrollable ? "match-list match-list-scroll" : "match-list"}>
       {matches.map((match) => (
         <MatchCard key={match.id} match={match} />
       ))}

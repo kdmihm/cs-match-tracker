@@ -2,6 +2,7 @@ import { collection, limit, onSnapshot, query, where } from "firebase/firestore"
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../firebase";
 import { toDate } from "../utils/formatDate";
+import { isTopRankedMatch } from "../utils/rankedTeams";
 import { useFavorites } from "./useFavorites";
 
 function chunk(values, size) {
@@ -18,8 +19,8 @@ function sortFavoriteMatches(a, b) {
   if (a.status === "finished" && b.status !== "finished") return 1;
   if (a.status !== "finished" && b.status === "finished") return -1;
 
-  const aTime = toDate(a.status === "finished" ? a.updatedAt : a.startTime)?.getTime() || 0;
-  const bTime = toDate(b.status === "finished" ? b.updatedAt : b.startTime)?.getTime() || 0;
+  const aTime = toDate(a.status === "finished" ? a.endTime || a.startTime || a.updatedAt : a.startTime)?.getTime() || 0;
+  const bTime = toDate(b.status === "finished" ? b.endTime || b.startTime || b.updatedAt : b.startTime)?.getTime() || 0;
 
   return a.status === "finished" ? bTime - aTime : aTime - bTime;
 }
@@ -50,7 +51,7 @@ export function useFavoriteMatches() {
           snapshot.docs.forEach((docSnapshot) => {
             matchMap.set(docSnapshot.id, { id: docSnapshot.id, ...docSnapshot.data() });
           });
-          setMatches(Array.from(matchMap.values()).sort(sortFavoriteMatches));
+          setMatches(Array.from(matchMap.values()).filter(isTopRankedMatch).sort(sortFavoriteMatches));
           setLoading(false);
         },
         (snapshotError) => {

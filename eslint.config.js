@@ -18,6 +18,10 @@ export default [
         navigator: "readonly",
         console: "readonly",
         process: "readonly",
+        URL: "readonly",
+        fetch: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
       },
       parserOptions: {
         ecmaFeatures: {

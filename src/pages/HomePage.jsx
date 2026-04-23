@@ -30,10 +30,9 @@ export default function HomePage() {
       <section className="hero-panel">
         <div>
           <span className="eyebrow">Professional Counter-Strike 2</span>
-          <h1>Track live scores, upcoming fixtures, and results without leaving Firestore.</h1>
+          <h1>Stay up to date with the Pro CS2 scene with live scores, results, and upcoming matches.</h1>
           <p>
-            Synced match data stays behind Firebase Cloud Functions, giving the app a fast realtime frontend without
-            exposing external API credentials.
+            Developed and maintained by Kurt.
           </p>
         </div>
       </section>
@@ -41,17 +40,17 @@ export default function HomePage() {
       <Row className="g-4">
         <Col lg={7}>
           <Section title="Live Matches" kicker="Now">
-            <MatchList {...live} emptyMessage="No professional CS2 matches are live right now." />
+            <MatchList {...live} scrollable emptyMessage="No matches are live right now." />
           </Section>
         </Col>
         <Col lg={5}>
           <Section title="Today Upcoming" kicker="Next">
-            <MatchList {...upcomingToday} emptyMessage="No more upcoming matches today." />
+            <MatchList {...upcomingToday} scrollable emptyMessage="No more upcoming matches today." />
           </Section>
         </Col>
       </Row>
 
-      <Section title="Recent Results" kicker="Finals">
+      <Section title="Recent Results" kicker="Final">
         <MatchList {...recent} emptyMessage="No recent results have been synced yet." />
       </Section>
     </Container>

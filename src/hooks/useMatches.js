@@ -1,12 +1,25 @@
-import { collection, limit, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import { collection, limit, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../firebase";
+import { toDate } from "../utils/formatDate";
+import { isTopRankedMatch } from "../utils/rankedTeams";
 
 function serializeDoc(snapshot) {
   return {
     id: snapshot.id,
     ...snapshot.data(),
   };
+}
+
+function sortMatches(matches, status) {
+  return [...matches].sort((a, b) => {
+    const finishedTimeA = a.endTime || a.startTime || a.updatedAt;
+    const finishedTimeB = b.endTime || b.startTime || b.updatedAt;
+    const aTime = toDate(status === "finished" ? finishedTimeA : a.startTime)?.getTime() || 0;
+    const bTime = toDate(status === "finished" ? finishedTimeB : b.startTime)?.getTime() || 0;
+
+    return status === "finished" ? bTime - aTime : aTime - bTime;
+  });
 }
 
 export function useMatches(status = "all", maxResults) {
@@ -21,9 +34,7 @@ export function useMatches(status = "all", maxResults) {
       constraints.push(where("status", "==", status));
     }
 
-    constraints.push(orderBy(status === "finished" ? "updatedAt" : "startTime", status === "finished" ? "desc" : "asc"));
-
-    if (maxResults) {
+    if (maxResults && status === "all") {
       constraints.push(limit(maxResults));
     }
 
@@ -37,7 +48,9 @@ export function useMatches(status = "all", maxResults) {
     return onSnapshot(
       query(collection(db, "matches"), ...queryConstraints),
       (snapshot) => {
-        setMatches(snapshot.docs.map(serializeDoc));
+        const rankedMatches = snapshot.docs.map(serializeDoc).filter(isTopRankedMatch);
+        const sortedMatches = sortMatches(rankedMatches, status);
+        setMatches(maxResults ? sortedMatches.slice(0, maxResults) : sortedMatches);
         setLoading(false);
       },
       (snapshotError) => {
@@ -45,7 +58,7 @@ export function useMatches(status = "all", maxResults) {
         setLoading(false);
       },
     );
-  }, [queryConstraints]);
+  }, [maxResults, queryConstraints, status]);
 
   return { matches, loading, error };
 }

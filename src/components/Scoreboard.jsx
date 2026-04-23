@@ -3,17 +3,19 @@ import { Badge, Table } from "react-bootstrap";
 export default function Scoreboard({ match, showMaps = false }) {
   const score = match?.score || { team1: 0, team2: 0 };
   const isPending = match?.status === "upcoming";
+  const team1Won = match?.status === "finished" && match?.winnerId && match.winnerId === match?.team1?.id;
+  const team2Won = match?.status === "finished" && match?.winnerId && match.winnerId === match?.team2?.id;
 
   return (
     <div className="scoreboard">
       <div className="score-row">
         <div className="team-score">
           <span>{match?.team1?.name || "TBD"}</span>
-          <strong>{isPending ? "-" : score.team1 ?? 0}</strong>
+          <strong className={team1Won ? "winner-score" : undefined}>{isPending ? "-" : score.team1 ?? 0}</strong>
         </div>
         <Badge bg={match?.status === "finished" ? "secondary" : "dark"}>{match?.format || "bo3"}</Badge>
         <div className="team-score team-score-right">
-          <strong>{isPending ? "-" : score.team2 ?? 0}</strong>
+          <strong className={team2Won ? "winner-score" : undefined}>{isPending ? "-" : score.team2 ?? 0}</strong>
           <span>{match?.team2?.name || "TBD"}</span>
         </div>
       </div>

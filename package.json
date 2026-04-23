@@ -8,7 +8,15 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "seed": "node scripts/seedMockData.js"
+    "seed": "node scripts/seedMockData.js",
+    "sync": "node scripts/syncPandascoreLocal.js all",
+    "sync:watch": "node scripts/syncPandascoreLocal.js watch",
+    "sync:live": "node scripts/syncPandascoreLocal.js live",
+    "sync:upcoming": "node scripts/syncPandascoreLocal.js upcoming",
+    "sync:results": "node scripts/syncPandascoreLocal.js results",
+    "sync:teams": "node scripts/syncPandascoreLocal.js teams",
+    "sync:events": "node scripts/syncPandascoreLocal.js events",
+    "sync:rankings": "node scripts/syncPandascoreLocal.js rankings"
   },
   "dependencies": {
     "bootstrap": "^5.3.3",

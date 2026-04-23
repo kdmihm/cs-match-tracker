@@ -10,17 +10,29 @@ export default function TeamsPage() {
 
   const filteredTeams = useMemo(() => {
     const searchValue = search.trim().toLowerCase();
-    if (!searchValue) return teams;
+    const sortedTeams = teams
+      .filter((team) => team.isTop50Team || (team.isRankedTeam && team.hltvRank <= 50))
+      .sort((a, b) => (a.hltvRank || 999) - (b.hltvRank || 999));
 
-    return teams.filter((team) => [team.name, team.region].filter(Boolean).join(" ").toLowerCase().includes(searchValue));
+    if (!searchValue) {
+      return sortedTeams;
+    }
+
+    return sortedTeams.filter((team) =>
+      [team.name, team.region, team.slug, team.rankingName, ...(team.rankingAliases || [])]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(searchValue),
+    );
   }, [search, teams]);
 
   return (
     <Container>
       <div className="page-heading">
         <span className="eyebrow">Teams</span>
-        <h1>Find and favorite teams</h1>
-        <p>Your favorites power the personalized match feed.</p>
+        <h1>Top 50 teams</h1>
+        <p>Only teams currently marked in the top 50 are shown here and used for match feeds.</p>
       </div>
 
       <Form.Control
